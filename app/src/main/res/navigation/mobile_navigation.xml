@@ -7,19 +7,19 @@
 
     <fragment
         android:id="@+id/navigation_live_map"
-        android:name="com.omric.geostatus.ui.home.LiveMapFragment"
+        android:name="com.omric.geostatus.ui.live_map.LiveMapFragment"
         android:label="@string/title_live_map"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/navigation_activity"
-        android:name="com.omric.geostatus.ui.dashboard.ActivityFragment"
+        android:name="com.omric.geostatus.ui.activity.ActivityFragment"
         android:label="@string/title_activity"
         tools:layout="@layout/fragment_dashboard" />
 
     <fragment
         android:id="@+id/navigation_profile"
-        android:name="com.omric.geostatus.ui.notifications.ActivityFragment"
+        android:name="com.omric.geostatus.ui.profile.ActivityFragment"
         android:label="@string/title_profile"
         tools:layout="@layout/fragment_notifications" />
 </navigation>
