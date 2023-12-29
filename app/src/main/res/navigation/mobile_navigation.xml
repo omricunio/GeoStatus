@@ -9,17 +9,17 @@
         android:id="@+id/navigation_live_map"
         android:name="com.omric.geostatus.ui.live_map.LiveMapFragment"
         android:label="@string/title_live_map"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_live_map" />
 
     <fragment
         android:id="@+id/navigation_activity"
         android:name="com.omric.geostatus.ui.activity.ActivityFragment"
         android:label="@string/title_activity"
-        tools:layout="@layout/fragment_dashboard" />
+        tools:layout="@layout/fragment_activity" />
 
     <fragment
         android:id="@+id/navigation_profile"
-        android:name="com.omric.geostatus.ui.profile.ActivityFragment"
+        android:name="com.omric.geostatus.ui.profile.ProfileFragment"
         android:label="@string/title_profile"
-        tools:layout="@layout/fragment_notifications" />
+        tools:layout="@layout/fragment_profile" />
 </navigation>
