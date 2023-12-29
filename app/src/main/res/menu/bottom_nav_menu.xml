@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_live_map"
+        android:icon="@android:drawable/ic_dialog_map"
+        android:title="@string/title_live_map" />
+
+    <item
+        android:id="@+id/navigation_activity"
+        android:icon="@android:drawable/ic_dialog_info"
+        android:title="@string/title_activity" />
+
+    <item
+        android:id="@+id/navigation_profile"
+        android:icon="@drawable/baseline_accessibility_new_24"
+        android:title="@string/title_profile" />
+
+</menu>
