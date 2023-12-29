@@ -1,4 +1,4 @@
-package com.omric.geostatus.ui.notifications
+package com.omric.geostatus.ui.live_map
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,12 +7,11 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.gms.maps.MapView
-import com.omric.geostatus.databinding.FragmentNotificationsBinding
+import com.omric.geostatus.databinding.FragmentHomeBinding
 
-class ActivityFragment : Fragment() {
+class LiveMapFragment : Fragment() {
 
-    private var _binding: FragmentNotificationsBinding? = null
+    private var _binding: FragmentHomeBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -23,18 +22,16 @@ class ActivityFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val notificationsViewModel =
-            ViewModelProvider(this).get(NotificationsViewModel::class.java)
+        val liveMapViewModel =
+            ViewModelProvider(this).get(LiveMapViewModel::class.java)
 
-        _binding = FragmentNotificationsBinding.inflate(inflater, container, false)
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textNotifications
-        notificationsViewModel.text.observe(viewLifecycleOwner) {
+        val textView: TextView = binding.textHome
+        liveMapViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
         }
-
-
         return root
     }
 

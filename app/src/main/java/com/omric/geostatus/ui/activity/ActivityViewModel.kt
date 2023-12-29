@@ -1,13 +1,13 @@
-package com.omric.geostatus.ui.notifications
+package com.omric.geostatus.ui.activity
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class NotificationsViewModel : ViewModel() {
+class ActivityViewModel : ViewModel() {
 
     private val _text = MutableLiveData<String>().apply {
-        value = "This is notifications Fragment"
+        value = "This is activity Fragment"
     }
     val text: LiveData<String> = _text
 }

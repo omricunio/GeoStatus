@@ -1,4 +1,4 @@
-package com.omric.geostatus.ui.dashboard
+package com.omric.geostatus.ui.activity
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -22,14 +22,14 @@ class ActivityFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val dashboardViewModel =
-            ViewModelProvider(this).get(DashboardViewModel::class.java)
+        val activityViewModel =
+            ViewModelProvider(this).get(ActivityViewModel::class.java)
 
         _binding = FragmentDashboardBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         val textView: TextView = binding.textDashboard
-        dashboardViewModel.text.observe(viewLifecycleOwner) {
+        activityViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
         }
         return root
