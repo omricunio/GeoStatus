@@ -2,12 +2,7 @@ package com.omric.geostatus
 
 import android.content.Intent
 import android.os.Bundle
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import com.omric.geostatus.databinding.ActivityMainBinding
 import com.omric.geostatus.ui.login.LoginActivity
 

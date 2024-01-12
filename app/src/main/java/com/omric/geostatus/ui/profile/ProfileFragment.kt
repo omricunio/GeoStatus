@@ -7,14 +7,13 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.omric.geostatus.databinding.FragmentProfileBinding
 
 class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -28,6 +27,8 @@ class ProfileFragment : Fragment() {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
+        val user = Firebase.auth.currentUser
+        binding.nameTextView.text = user!!.email
 
         return root
     }
