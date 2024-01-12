@@ -3,4 +3,9 @@
     <string name="title_live_map">LiveMap</string>
     <string name="title_activity">Activity</string>
     <string name="title_profile">Profile</string>
+
+    <string name="login_action">already have an account? sign in!</string>
+    <string name="register_action">not registered? sign up!</string>
+    <string name="register_button_text">Register</string>
+    <string name="login_button_text">Login</string>
 </resources>
