@@ -61,5 +61,19 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/expiresInLabel" />
 
+    <Button
+        android:id="@+id/uploadButton"
+        android:layout_width="140dp"
+        android:layout_height="66dp"
+        android:layout_marginTop="22dp"
+        android:text="Upload"
+        android:textAlignment="center"
+        app:icon="@android:drawable/stat_notify_sync"
+        app:iconGravity="textStart"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/activityDescription" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
