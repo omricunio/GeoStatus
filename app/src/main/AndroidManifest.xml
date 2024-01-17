@@ -50,6 +50,9 @@
         <activity
             android:name=".ui.root.RootActivity"
             android:exported="true"/>
+        <activity
+            android:name=".ui.live_map.MapsActivity"
+            android:exported="true"/>
         <provider
             android:authorities="com.omric.geostatus.FileProvider"
             android:name="androidx.core.content.FileProvider"
