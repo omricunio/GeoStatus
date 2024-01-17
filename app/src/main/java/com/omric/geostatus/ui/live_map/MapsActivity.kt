@@ -1,3 +1,5 @@
+package com.omric.geostatus.ui.live_map
+
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 
@@ -9,7 +11,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.omric.geostatus.R
 
-internal class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
 

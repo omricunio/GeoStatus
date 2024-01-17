@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,17 +13,21 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.database
 import com.google.firebase.storage.storage
 import com.omric.geostatus.R
+import com.omric.geostatus.classes.Status
 import com.omric.geostatus.databinding.FragmentActivityBinding
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ActivityFragment : Fragment() {
 
@@ -61,6 +64,7 @@ class ActivityFragment : Fragment() {
         imageUrl = createImageUri();
 
         binding.uploadButton.setOnClickListener {
+            val database = Firebase.database.reference
             checkPermissions()
         }
 
@@ -110,7 +114,7 @@ class ActivityFragment : Fragment() {
             .setTitle("Your new status name")
             .setView(textInputLayout)
             .setPositiveButton("Upload") { dialog, which ->
-                uploadStatus(imageUrl)
+                uploadStatus(input.text.toString(), imageUrl)
             }
             .setNegativeButton("Cancel", null)
 
@@ -118,22 +122,39 @@ class ActivityFragment : Fragment() {
         dialog.show()
     }
 
-    private fun uploadStatus(imageUrl: Uri) {
-        val database = Firebase.database.reference
-        database.child("users").setValue("dfsgdgd")
+    private fun getCurrentDate(): String {
+        return SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date())
+    }
+    private fun uploadStatus(name: String, imageUrl: Uri) {
+        binding.activityProgressBar.isVisible = true
+        binding.activityPlaceholder.isVisible = false
 
+
+        val database = Firebase.database.reference
         val storageRef = Firebase.storage.reference
-        var file = imageUrl
-        val riversRef = storageRef.child("images/${Firebase.auth.currentUser!!.uid}")
-        val uploadTask = riversRef.putFile(file)
+        val user = Firebase.auth.currentUser
+
+        val status = Status(name, getCurrentDate())
+        val userStatusKey = database.child("statuses").push().key
+        database.child("statuses").child(userStatusKey!!).setValue(status)
+
+        val riversRef = storageRef.child("images/${userStatusKey}")
+        val uploadTask = riversRef.putFile(imageUrl)
+
+        database.child("users").child(user!!.uid).child("statuses").push().setValue(userStatusKey)
 
         uploadTask.addOnFailureListener {
+            binding.activityProgressBar.isVisible = false
             Toast.makeText(
                 requireContext(),
                 "Failed to upload status",
                 Toast.LENGTH_SHORT,
             ).show()
         }.addOnSuccessListener { taskSnapshot ->
+            binding.activityProgressBar.isVisible = false
+            binding.activityImageView.isVisible = true
+            binding.activityImageView.setImageURI(imageUrl)
+            binding.activityName.text = status.name
             Toast.makeText(
                 requireContext(),
                 "Status was successfully uploaded",
