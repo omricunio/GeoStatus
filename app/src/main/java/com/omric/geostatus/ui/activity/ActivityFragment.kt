@@ -20,6 +20,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.database.database
+import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import com.omric.geostatus.R
 import com.omric.geostatus.classes.Status
@@ -28,6 +29,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 
 class ActivityFragment : Fragment() {
 
@@ -130,37 +132,45 @@ class ActivityFragment : Fragment() {
         binding.activityPlaceholder.isVisible = false
 
 
-        val database = Firebase.database.reference
+        val database = Firebase.firestore
         val storageRef = Firebase.storage.reference
         val user = Firebase.auth.currentUser
+        val statusesCollection = database.collection("statuses")
 
-        val status = Status(name, getCurrentDate())
-        val userStatusKey = database.child("statuses").push().key
-        database.child("statuses").child(userStatusKey!!).setValue(status)
-
-        val riversRef = storageRef.child("images/${userStatusKey}")
-        val uploadTask = riversRef.putFile(imageUrl)
-
-        database.child("users").child(user!!.uid).child("statuses").push().setValue(userStatusKey)
+        val imageRef = storageRef.child("images/${UUID.randomUUID()}")
+        val uploadTask = imageRef.putFile(imageUrl)
 
         uploadTask.addOnFailureListener {
-            binding.activityProgressBar.isVisible = false
-            Toast.makeText(
-                requireContext(),
-                "Failed to upload status",
-                Toast.LENGTH_SHORT,
-            ).show()
+            onUploadError()
         }.addOnSuccessListener { taskSnapshot ->
-            binding.activityProgressBar.isVisible = false
-            binding.activityImageView.isVisible = true
-            binding.activityImageView.setImageURI(imageUrl)
-            binding.activityName.text = status.name
-            Toast.makeText(
-                requireContext(),
-                "Status was successfully uploaded",
-                Toast.LENGTH_SHORT,
-            ).show()
+            val status = Status(name, getCurrentDate(), taskSnapshot.metadata!!.path, user!!.uid)
+            statusesCollection.add(status).addOnFailureListener {
+                onUploadError()
+            }.addOnSuccessListener {
+                onUploadSuccess(status, imageUrl.toString())
+            }
         }
+    }
+
+    private fun onUploadError() {
+        binding.activityProgressBar.isVisible = false
+        Toast.makeText(
+            requireContext(),
+            "Failed to upload status",
+            Toast.LENGTH_SHORT,
+        ).show()
+    }
+
+    private fun onUploadSuccess(status: Status, localImageUrl: String) {
+        binding.activityProgressBar.isVisible = false
+        binding.activityImageView.isVisible = true
+        binding.activityImageView.setImageURI(imageUrl)
+        binding.activityName.text = status.name
+        Toast.makeText(
+            requireContext(),
+            "Status was successfully uploaded",
+            Toast.LENGTH_SHORT,
+        ).show()
     }
 
     override fun onDestroyView() {
