@@ -1,8 +1,11 @@
 package com.omric.geostatus.ui.activity
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Context
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,19 +15,26 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.FileProvider
+import androidx.core.content.getSystemService
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.database.database
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
+import com.google.type.LatLng
 import com.omric.geostatus.R
+import com.omric.geostatus.classes.Location
 import com.omric.geostatus.classes.Status
 import com.omric.geostatus.databinding.FragmentActivityBinding
+import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -77,8 +87,8 @@ class ActivityFragment : Fragment() {
         photoContract.launch(imageUrl)
     }
 
-    private val cameraPermissionResultReceiver = registerForActivityResult(ActivityResultContracts.RequestPermission()) { permitted ->
-        if (permitted) {
+    private val permissionResultReceiver = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permitted ->
+        if (permitted.values.all { permission -> permission }) {
             shotAndUpload()
         } else {
             Toast.makeText(
@@ -91,9 +101,10 @@ class ActivityFragment : Fragment() {
 
     private fun checkPermissions() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_DENIED || ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_DENIED
         ) {
-            cameraPermissionResultReceiver.launch(Manifest.permission.CAMERA)
+            permissionResultReceiver.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION))
         } else {
             shotAndUpload()
         }
@@ -127,6 +138,7 @@ class ActivityFragment : Fragment() {
     private fun getCurrentDate(): String {
         return SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date())
     }
+    @SuppressLint("MissingPermission")
     private fun uploadStatus(name: String, imageUrl: Uri) {
         binding.activityProgressBar.isVisible = true
         binding.activityPlaceholder.isVisible = false
@@ -140,15 +152,19 @@ class ActivityFragment : Fragment() {
         val imageRef = storageRef.child("images/${UUID.randomUUID()}")
         val uploadTask = imageRef.putFile(imageUrl)
 
-        uploadTask.addOnFailureListener {
-            onUploadError()
-        }.addOnSuccessListener { taskSnapshot ->
-            val status = Status(name, getCurrentDate(), taskSnapshot.metadata!!.path, user!!.uid)
-            statusesCollection.add(status).addOnFailureListener {
-                onUploadError()
-            }.addOnSuccessListener {
-                onUploadSuccess(status, imageUrl.toString())
-            }
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).addOnSuccessListener { location ->
+                uploadTask.addOnFailureListener {
+                    onUploadError()
+                }.addOnSuccessListener { taskSnapshot ->
+                    val status = Status(name, getCurrentDate(), taskSnapshot.metadata!!.path, user!!.uid, Location(location.latitude, location.longitude))
+                    statusesCollection.add(status).addOnFailureListener {
+                        onUploadError()
+                    }.addOnSuccessListener {
+                        onUploadSuccess(status, imageUrl.toString())
+                    }
+                }
+
         }
     }
 
