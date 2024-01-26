@@ -1,8 +1,9 @@
 package com.omric.geostatus.ui.root
 
-import android.content.Intent
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -11,10 +12,11 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.omric.geostatus.R
 import com.omric.geostatus.databinding.ActivityMainBinding
 
+
 class RootActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-
+    private lateinit var navController: NavController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -23,7 +25,7 @@ class RootActivity : AppCompatActivity() {
 
         val navView: BottomNavigationView = binding.navView
 
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        navController = findNavController(R.id.nav_host_fragment_activity_main)
         val appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.navigation_activity, R.id.navigation_profile, R.id.navigation_live_map
@@ -31,5 +33,15 @@ class RootActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                navController.popBackStack()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 }

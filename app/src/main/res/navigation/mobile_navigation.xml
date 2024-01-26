@@ -21,5 +21,16 @@
         android:id="@+id/navigation_profile"
         android:name="com.omric.geostatus.ui.profile.ProfileFragment"
         android:label="@string/title_profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile" >
+        <action
+            android:id="@+id/action_navigation_profile_to_status_view_fragment"
+            app:destination="@id/status_view_fragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/status_view_fragment"
+        android:name="com.omric.geostatus.ui.status_view.StatusViewFragment"
+        android:label="Status"
+        tools:layout="@layout/status_view" >
+    </fragment>
 </navigation>
