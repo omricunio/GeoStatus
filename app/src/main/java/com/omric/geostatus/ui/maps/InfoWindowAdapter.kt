@@ -29,11 +29,6 @@ class InfoWindowAdapter(private val myContext: FragmentActivity) : GoogleMap.Inf
     }
 
     override fun getInfoContents(marker: Marker): View? {
-//        if (marker.isInfoWindowShown
-//        ) {
-////            marker.hideInfoWindow()
-////            marker.showInfoWindow()
-//        }
         return null
     }
 
