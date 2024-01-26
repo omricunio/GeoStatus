@@ -68,12 +68,8 @@ class ProfileFragment : Fragment() {
                 }
 
                 val customAdapter = CustomAdapter(statuses.toTypedArray()) { status ->
-//                    val fragmentManager = requireActivity().supportFragmentManager
-//                    val fragmentTransaction = fragmentManager.beginTransaction();
-//                    val fragment = StatusViewFragment();
-//                    fragmentTransaction.add(R.id.navigation_profile, fragment);
-//                    fragmentTransaction.commit();
-                    findNavController().navigate(R.id.action_navigation_profile_to_status_view_fragment)
+                    val action = ProfileFragmentDirections.actionNavigationProfileToStatusViewFragment(status)
+                    findNavController().navigate(action)
 
                 }
                 val recyclerView: RecyclerView = binding.profileStatusRecyclerView

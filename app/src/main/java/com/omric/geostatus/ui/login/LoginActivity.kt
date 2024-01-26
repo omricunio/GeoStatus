@@ -61,7 +61,6 @@ class LoginActivity : AppCompatActivity() {
             }
             progressBarView.isVisible = false
         }
-
         passLogin()
     }
 

@@ -32,5 +32,8 @@
         android:name="com.omric.geostatus.ui.status_view.StatusViewFragment"
         android:label="Status"
         tools:layout="@layout/status_view" >
+        <argument
+            android:name="status"
+            app:argType="com.omric.geostatus.classes.Status" />
     </fragment>
 </navigation>
