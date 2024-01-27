@@ -23,6 +23,7 @@ import com.omric.geostatus.R
 import com.omric.geostatus.classes.Location
 import com.omric.geostatus.classes.Status
 import com.omric.geostatus.databinding.FragmentProfileBinding
+import com.omric.geostatus.ui.login.LoginActivity
 import com.omric.geostatus.ui.status_view.StatusViewFragment
 import com.omric.geostatus.utils.ImageUtils
 import com.squareup.picasso.Picasso
@@ -58,32 +59,22 @@ class ProfileFragment : Fragment() {
         imageUtils = ImageUtils(this)
 
         binding.editProfileButton.setOnClickListener {
-            imageUtils.captureImage() {
-                    imageUrl ->
-                val user = Firebase.auth.currentUser!!
-                val storageRef = Firebase.storage.reference
-
-                val imageRef = storageRef.child("profiles/${UUID.randomUUID()}")
-                val uploadTask = imageRef.putFile(imageUrl)
-                uploadTask.addOnFailureListener {
-                    Toast.makeText(
-                        requireContext(),
-                        "Failed to upload profile picture",
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                }.addOnSuccessListener { taskSnapshot ->
-                    imageRef.downloadUrl.addOnSuccessListener { uploadedUrl ->
-                        user.updateProfile(UserProfileChangeRequest.Builder().setPhotoUri(uploadedUrl).build()).addOnSuccessListener {
-                            Picasso.get().load(uploadedUrl).into(binding.imageView);
-                        }
-                    }
-                }
-
-            }
+            updateProfile()
         }
 
-        val db = Firebase.firestore
+        binding.logoutButton.setOnClickListener {
+            Firebase.auth.signOut()
+            val intent = Intent(requireContext(), LoginActivity::class.java)
+            startActivity(intent)
+        }
 
+        fetchStatuses()
+
+        return root
+    }
+
+    fun fetchStatuses() {
+        val db = Firebase.firestore
         db.collection("statuses")
             .get()
             .addOnSuccessListener { result ->
@@ -124,10 +115,30 @@ class ProfileFragment : Fragment() {
                     Toast.LENGTH_SHORT,
                 ).show()
             }
+    }
 
+    fun updateProfile() {
+        imageUtils.captureImage() {
+                imageUrl ->
+            val user = Firebase.auth.currentUser!!
+            val storageRef = Firebase.storage.reference
 
-
-        return root
+            val imageRef = storageRef.child("profiles/${UUID.randomUUID()}")
+            val uploadTask = imageRef.putFile(imageUrl)
+            uploadTask.addOnFailureListener {
+                Toast.makeText(
+                    requireContext(),
+                    "Failed to upload profile picture",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }.addOnSuccessListener { taskSnapshot ->
+                imageRef.downloadUrl.addOnSuccessListener { uploadedUrl ->
+                    user.updateProfile(UserProfileChangeRequest.Builder().setPhotoUri(uploadedUrl).build()).addOnSuccessListener {
+                        Picasso.get().load(uploadedUrl).into(binding.imageView);
+                    }
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {

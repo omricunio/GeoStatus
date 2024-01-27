@@ -22,11 +22,14 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.auth
+import com.google.firebase.database.database
+import com.google.firebase.firestore.firestore
 import com.omric.geostatus.R
 import com.omric.geostatus.databinding.FragmentActivityBinding
 import com.omric.geostatus.databinding.LoginLayoutBinding
 import com.omric.geostatus.ui.root.RootActivity
 import com.omric.geostatus.utils.ImageUtils
+import org.json.JSONObject
 
 class LoginActivity : AppCompatActivity() {
 
@@ -46,6 +49,11 @@ class LoginActivity : AppCompatActivity() {
         setContentView(view)
 
         auth = Firebase.auth
+
+        if(auth.uid != null) {
+            passLogin()
+        }
+
         viewModel = ViewModelProvider(this).get<LoginViewModel>(LoginViewModel::class.java)
 
         binding.signUpText.setOnClickListener {
@@ -66,7 +74,6 @@ class LoginActivity : AppCompatActivity() {
             }
             binding.loginProgressBar.isVisible = false
         }
-        passLogin()
     }
 
     private fun validateEmail(): Boolean {
@@ -117,7 +124,12 @@ class LoginActivity : AppCompatActivity() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    task.result.user!!.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(binding.editTextName.text.toString()).build())
+                    val name = binding.editTextName.text.toString()
+                    val user = task.result.user!!
+                    task.result.user!!.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(name).build())
+
+                    val usersCollection = Firebase.firestore.collection("users")
+                    usersCollection.add(hashMapOf("uid" to user.uid, "name" to name))
                     Log.d(TAG, "createUserWithEmail:success")
                     passLogin()
                 } else {
