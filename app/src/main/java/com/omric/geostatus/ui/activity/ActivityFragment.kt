@@ -29,12 +29,11 @@ import com.google.firebase.auth.auth
 import com.google.firebase.database.database
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
-import com.google.type.LatLng
 import com.omric.geostatus.R
 import com.omric.geostatus.classes.Location
 import com.omric.geostatus.classes.Status
 import com.omric.geostatus.databinding.FragmentActivityBinding
-import kotlinx.coroutines.tasks.await
+import com.omric.geostatus.utils.ImageUtils
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -49,13 +48,7 @@ class ActivityFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private lateinit var imageUrl: Uri
-
-    private val photoContract = registerForActivityResult(ActivityResultContracts.TakePicture()) { approved ->
-        if(approved) {
-            buildStatus(imageUrl)
-        }
-    }
+    private lateinit var imageUtils: ImageUtils
 
     private fun createImageUri() : Uri {
         val image = File(requireContext().filesDir, "camera_photos.png")
@@ -73,41 +66,16 @@ class ActivityFragment : Fragment() {
         _binding = FragmentActivityBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        imageUrl = createImageUri();
-
+        imageUtils = ImageUtils(this)
         binding.uploadButton.setOnClickListener {
             val database = Firebase.database.reference
-            checkPermissions()
+            imageUtils.captureImage() {
+                imageUrl ->
+                buildStatus(imageUrl)
+            }
         }
 
         return root
-    }
-
-    private fun shotAndUpload() {
-        photoContract.launch(imageUrl)
-    }
-
-    private val permissionResultReceiver = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permitted ->
-        if (permitted.values.all { permission -> permission }) {
-            shotAndUpload()
-        } else {
-            Toast.makeText(
-                requireContext(),
-                "Camera permissions denied",
-                Toast.LENGTH_SHORT,
-            ).show()
-        }
-    }
-
-    private fun checkPermissions() {
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
-            == PackageManager.PERMISSION_DENIED || ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-            == PackageManager.PERMISSION_DENIED
-        ) {
-            permissionResultReceiver.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION))
-        } else {
-            shotAndUpload()
-        }
     }
 
     private fun buildStatus(imageUrl: Uri) {
@@ -161,7 +129,7 @@ class ActivityFragment : Fragment() {
                     statusesCollection.add(status).addOnFailureListener {
                         onUploadError()
                     }.addOnSuccessListener {
-                        onUploadSuccess(status, imageUrl.toString())
+                        onUploadSuccess(status, imageUrl)
                     }
                 }
 
@@ -177,7 +145,7 @@ class ActivityFragment : Fragment() {
         ).show()
     }
 
-    private fun onUploadSuccess(status: Status, localImageUrl: String) {
+    private fun onUploadSuccess(status: Status, imageUrl: Uri) {
         binding.activityProgressBar.isVisible = false
         binding.activityImageView.isVisible = true
         binding.activityImageView.setImageURI(imageUrl)
