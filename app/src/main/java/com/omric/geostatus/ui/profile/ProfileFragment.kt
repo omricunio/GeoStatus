@@ -15,19 +15,26 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.Firebase
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
 import com.omric.geostatus.R
 import com.omric.geostatus.classes.Location
 import com.omric.geostatus.classes.Status
 import com.omric.geostatus.databinding.FragmentProfileBinding
 import com.omric.geostatus.ui.status_view.StatusViewFragment
+import com.omric.geostatus.utils.ImageUtils
+import com.squareup.picasso.Picasso
+import java.util.UUID
 
 
 class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var imageUtils: ImageUtils
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,7 +49,38 @@ class ProfileFragment : Fragment() {
 
 
         val user = Firebase.auth.currentUser
-        binding.nameTextView.text = user!!.email
+        binding.nameTextView.text = user!!.displayName
+
+        if(user.photoUrl != null) {
+            Picasso.get().load(user.photoUrl).into(binding.imageView);
+        }
+
+        imageUtils = ImageUtils(this)
+
+        binding.editProfileButton.setOnClickListener {
+            imageUtils.captureImage() {
+                    imageUrl ->
+                val user = Firebase.auth.currentUser!!
+                val storageRef = Firebase.storage.reference
+
+                val imageRef = storageRef.child("profiles/${UUID.randomUUID()}")
+                val uploadTask = imageRef.putFile(imageUrl)
+                uploadTask.addOnFailureListener {
+                    Toast.makeText(
+                        requireContext(),
+                        "Failed to upload profile picture",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }.addOnSuccessListener { taskSnapshot ->
+                    imageRef.downloadUrl.addOnSuccessListener { uploadedUrl ->
+                        user.updateProfile(UserProfileChangeRequest.Builder().setPhotoUri(uploadedUrl).build()).addOnSuccessListener {
+                            Picasso.get().load(uploadedUrl).into(binding.imageView);
+                        }
+                    }
+                }
+
+            }
+        }
 
         val db = Firebase.firestore
 
