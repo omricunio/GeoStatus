@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import com.omric.geostatus.classes.Status
 import com.omric.geostatus.databinding.StatusViewBinding
@@ -27,8 +29,10 @@ class StatusViewFragment() : Fragment() {
         _binding = StatusViewBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
+        Firebase.firestore.collection("users").whereEqualTo("uid", status.creator).get().addOnSuccessListener { snapshot ->
+            binding.fullStatusCreatorTextView.text = snapshot.documents.first()["name"] as String
+        }
         binding.fullStatusNameTextView.text = status.name
-        binding.fullStatusCreatorTextView.text = status.creator
 
         val storage = Firebase.storage.reference
         val imageRef = storage.child(status.imagePath)
