@@ -2,6 +2,8 @@ package com.omric.geostatus.ui.maps
 
 import android.content.ContentValues.TAG
 import android.content.Context
+import android.graphics.Bitmap
+import android.net.Uri
 import android.nfc.Tag
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,11 +14,15 @@ import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Marker
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import com.omric.geostatus.R
+import com.omric.geostatus.classes.Status
 import com.squareup.picasso.Picasso
 
-class InfoWindowAdapter(private val myContext: FragmentActivity) : GoogleMap.InfoWindowAdapter {
+class StatusMapBubble(val name: String, val creatorName: String, val image: Bitmap) {}
+
+class InfoWindowAdapter(private val myContext: FragmentActivity, private val markerToStatus: HashMap<Marker, StatusMapBubble>) : GoogleMap.InfoWindowAdapter {
     private val view: View
 
     init {
@@ -37,13 +43,15 @@ class InfoWindowAdapter(private val myContext: FragmentActivity) : GoogleMap.Inf
         val subTitle = view.findViewById(R.id.subTitle) as TextView
         val imageView = view.findViewById(R.id.windowIcon) as ImageView
 
-        val storage = Firebase.storage.reference
-        val imageRef = storage.child(marker.snippet!!)
-        imageRef.downloadUrl.addOnSuccessListener { imageUrl ->
-            Picasso.get().load(imageUrl).into(imageView);
-            title.text = marker.title
-            subTitle.text = "dadadaddadadasdada"
+        val bubble = markerToStatus[marker]
+        if(bubble === null) {
+            return view
         }
+
+
+        imageView.setImageBitmap(bubble.image)
+        title.text = bubble.name
+        subTitle.text = bubble.creatorName
 
         return view
     }

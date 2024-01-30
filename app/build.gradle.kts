@@ -49,6 +49,7 @@ secrets {
 
 dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation ("com.github.bumptech.glide:glide:4.11.0")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-database")
     implementation("androidx.core:core-ktx:1.10.1")
@@ -73,4 +74,5 @@ dependencies {
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.11.0")
 }
