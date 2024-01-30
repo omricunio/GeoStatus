@@ -1,27 +1,39 @@
 package com.omric.geostatus.ui.live_map
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.UiThread
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
 import com.omric.geostatus.R
 import com.omric.geostatus.classes.Location
 import com.omric.geostatus.classes.Status
 import com.omric.geostatus.databinding.FragmentLiveMapBinding
 import com.omric.geostatus.ui.maps.InfoWindowAdapter
+import com.omric.geostatus.ui.maps.StatusMapBubble
+import com.squareup.picasso.Picasso
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
+import java.net.URL
 
 
 class LiveMapFragment : Fragment() {
@@ -47,15 +59,19 @@ class LiveMapFragment : Fragment() {
         val root: View = binding.root
 
         liveMapViewModel.statuses.observe(viewLifecycleOwner) {
-            val statuses = liveMapViewModel.statuses.value
-            if(!statuses.isNullOrEmpty()) {
-                setStatusesOnMap(map, statuses)
+            runBlocking {
+                val statuses = liveMapViewModel.statuses.value
+                if(!statuses.isNullOrEmpty()) {
+                    launch {
+                        val markerToStatus = mapStatuses(map, statuses)
+                        map.setInfoWindowAdapter(InfoWindowAdapter(requireActivity(), markerToStatus))
+                    }
+                }
             }
         }
 
         val supportMapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment;
         supportMapFragment.getMapAsync(OnMapReadyCallback { googleMap ->
-            googleMap.setInfoWindowAdapter(InfoWindowAdapter(requireActivity()))
             map = googleMap
             loadStatuses()
         })
@@ -95,32 +111,28 @@ class LiveMapFragment : Fragment() {
             }
     }
 
-    private fun setStatusesOnMap(googleMap: GoogleMap, statuses: MutableList<Status>) {
+    private suspend fun mapStatuses(googleMap: GoogleMap, statuses: MutableList<Status>): HashMap<Marker, StatusMapBubble> {
+        val hasMap = HashMap<Marker, StatusMapBubble>()
         for (status in statuses) {
             val markerOptions = MarkerOptions()
             markerOptions.position(LatLng(status.location.latitude, status.location.longitude))
-            markerOptions.title(status.name)
-            markerOptions.snippet(status.imagePath)
             markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-            googleMap.addMarker(markerOptions)
-        }
+            val storage = Firebase.storage.reference
+            val imageRef = storage.child(status.imagePath)
+            val imageUrl = imageRef.downloadUrl.await()
 
-//        googleMap.setOnMapClickListener { latLng -> // When clicked on map
-//            // Initialize marker options
-//            val markerOptions = MarkerOptions()
-//            // Set position of marker
-//            markerOptions.position(latLng)
-//            // Set title of marker
-//            markerOptions.title(latLng.latitude.toString() + " : " + latLng.longitude)
-//            markerOptions.snippet("DDD")
-//            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-//            // Remove all marker
-//            googleMap.clear()
-//            // Animating to zoom the marker
-//            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10f))
-//            // Add marker on map
-//            googleMap.addMarker(markerOptions)
-//        }
+            val bitmap = GlobalScope.async {
+                val bitmap = Picasso.get().load(imageUrl).get()
+                bitmap
+            }.await()
+
+            val snapshot = Firebase.firestore.collection("users").whereEqualTo("uid", status.creator).get().await()
+            val creatorName = snapshot.documents.first()["name"] as String
+            val bubble = StatusMapBubble(status.name, creatorName, bitmap)
+            val marker = googleMap.addMarker(markerOptions)!!
+            hasMap[marker] = bubble
+        }
+        return hasMap
     }
 
     override fun onDestroyView() {
