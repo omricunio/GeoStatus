@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Marker
 import com.google.firebase.Firebase
@@ -18,9 +19,11 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import com.omric.geostatus.R
 import com.omric.geostatus.classes.Status
+import com.omric.geostatus.ui.live_map.LiveMapFragmentDirections
+import com.omric.geostatus.ui.profile.ProfileFragmentDirections
 import com.squareup.picasso.Picasso
 
-class StatusMapBubble(val name: String, val creatorName: String, val image: Bitmap) {}
+class StatusMapBubble(val name: String, val creatorName: String, val image: Bitmap, val originalStatus: Status) {}
 
 class InfoWindowAdapter(private val myContext: FragmentActivity, private val markerToStatus: HashMap<Marker, StatusMapBubble>) : GoogleMap.InfoWindowAdapter {
     private val view: View
@@ -48,11 +51,11 @@ class InfoWindowAdapter(private val myContext: FragmentActivity, private val mar
             return view
         }
 
-
         imageView.setImageBitmap(bubble.image)
         title.text = bubble.name
         subTitle.text = bubble.creatorName
 
         return view
     }
+
 }

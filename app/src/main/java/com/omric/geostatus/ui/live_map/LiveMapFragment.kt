@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.annotation.UiThread
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -65,6 +66,13 @@ class LiveMapFragment : Fragment() {
                     launch {
                         val markerToStatus = mapStatuses(map, statuses)
                         map.setInfoWindowAdapter(InfoWindowAdapter(requireActivity(), markerToStatus))
+                        map.setOnInfoWindowClickListener { marker ->
+                            val bubble = markerToStatus[marker]
+                            if(bubble != null) {
+                                val action = LiveMapFragmentDirections.actionNavigationLiveMapToStatusViewFragment(bubble.originalStatus)
+                                findNavController().navigate(action)
+                            }
+                        }
                     }
                 }
             }
@@ -96,7 +104,7 @@ class LiveMapFragment : Fragment() {
                     val location = Location(loc["latitude"] as Double, loc["longitude"] as Double)
 
                     if(!(name.isNullOrEmpty() || date.isNullOrEmpty() || imagePath.isNullOrEmpty() || creator.isNullOrEmpty())) {
-                        val item = Status(name, date, imagePath, creator, location)
+                        val item = Status(name, date, imagePath, creator, location, document.id)
                         statuses.add(item)
                     }
                 }
@@ -128,7 +136,7 @@ class LiveMapFragment : Fragment() {
 
             val snapshot = Firebase.firestore.collection("users").whereEqualTo("uid", status.creator).get().await()
             val creatorName = snapshot.documents.first()["name"] as String
-            val bubble = StatusMapBubble(status.name, creatorName, bitmap)
+            val bubble = StatusMapBubble(status.name, creatorName, bitmap, status)
             val marker = googleMap.addMarker(markerOptions)!!
             hasMap[marker] = bubble
         }

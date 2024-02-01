@@ -9,7 +9,11 @@
         android:id="@+id/navigation_live_map"
         android:name="com.omric.geostatus.ui.live_map.LiveMapFragment"
         android:label="@string/title_live_map"
-        tools:layout="@layout/fragment_live_map" />
+        tools:layout="@layout/fragment_live_map" >
+        <action
+            android:id="@+id/action_navigation_live_map_to_status_view_fragment"
+            app:destination="@id/status_view_fragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_activity"

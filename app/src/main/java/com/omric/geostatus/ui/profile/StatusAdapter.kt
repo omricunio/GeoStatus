@@ -11,8 +11,8 @@ import com.google.firebase.storage.storage
 import com.omric.geostatus.R
 import com.omric.geostatus.classes.Status
 import com.squareup.picasso.Picasso
-class CustomAdapter(private val dataSet: Array<Status>, private val onItemClicked: (Status) -> Unit) :
-    RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
+class StatusAdapter(private val dataSet: Array<Status>, private val onItemClicked: (Status) -> Unit, private val onLongClick: (Status) -> Unit):
+    RecyclerView.Adapter<StatusAdapter.ViewHolder>() {
 
 
     /**
@@ -45,6 +45,10 @@ class CustomAdapter(private val dataSet: Array<Status>, private val onItemClicke
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
         viewHolder.itemView.setOnClickListener { onItemClicked(dataSet[position]) }
+        viewHolder.itemView.setOnLongClickListener {
+            onLongClick(dataSet[position])
+            return@setOnLongClickListener true
+        }
         viewHolder.nameTextView.text = dataSet[position].name
         val storage = Firebase.storage.reference
         val imageRef = storage.child(dataSet[position].imagePath)

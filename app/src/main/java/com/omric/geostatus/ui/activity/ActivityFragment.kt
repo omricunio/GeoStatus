@@ -125,7 +125,7 @@ class ActivityFragment : Fragment() {
                 uploadTask.addOnFailureListener {
                     onUploadError()
                 }.addOnSuccessListener { taskSnapshot ->
-                    val status = Status(name, getCurrentDate(), taskSnapshot.metadata!!.path, user!!.uid, Location(location.latitude, location.longitude))
+                    val status = Status(name, getCurrentDate(), taskSnapshot.metadata!!.path, user!!.uid, Location(location.latitude, location.longitude), null)
                     statusesCollection.add(status).addOnFailureListener {
                         onUploadError()
                     }.addOnSuccessListener {
