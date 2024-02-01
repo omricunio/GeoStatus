@@ -48,7 +48,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="There is nothing intersting here upload your first activity"
+            android:text="This page is for you to upload an activity, click the 'Upload' button below"
             android:textSize="20dp" />
 
         <ProgressBar

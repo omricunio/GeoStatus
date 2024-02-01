@@ -1,19 +1,20 @@
 package com.omric.geostatus.ui.profile
 
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.Firebase
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.auth
@@ -24,7 +25,6 @@ import com.omric.geostatus.classes.Location
 import com.omric.geostatus.classes.Status
 import com.omric.geostatus.databinding.FragmentProfileBinding
 import com.omric.geostatus.ui.login.LoginActivity
-import com.omric.geostatus.ui.status_view.StatusViewFragment
 import com.omric.geostatus.utils.ImageUtils
 import com.squareup.picasso.Picasso
 import java.util.UUID
@@ -74,8 +74,10 @@ class ProfileFragment : Fragment() {
     }
 
     fun fetchStatuses() {
+        val user = Firebase.auth.currentUser!!
         val db = Firebase.firestore
         db.collection("statuses")
+            .whereEqualTo("creator", user.uid)
             .get()
             .addOnSuccessListener { result ->
                 val statuses = mutableListOf<Status>()
@@ -90,17 +92,37 @@ class ProfileFragment : Fragment() {
                     val location = Location(loc["latitude"] as Double, loc["longitude"] as Double)
 
                     if(!(name.isNullOrEmpty() || date.isNullOrEmpty() || imagePath.isNullOrEmpty() || creator.isNullOrEmpty())) {
-                        val item = Status(name, date, imagePath, creator, location)
+                        val item = Status(name, date, imagePath, creator, location, document.id)
                         statuses.add(item)
                     }
 
                 }
 
-                val customAdapter = CustomAdapter(statuses.toTypedArray()) { status ->
+                val customAdapter = StatusAdapter(statuses.toTypedArray(), { status ->
                     val action = ProfileFragmentDirections.actionNavigationProfileToStatusViewFragment(status)
                     findNavController().navigate(action)
+                }, { status ->
+                    val builder: AlertDialog.Builder = AlertDialog.Builder(context)
 
-                }
+                    builder
+                        .setItems(arrayOf("edit", "delete" )) { dialog: DialogInterface, which: Int ->
+                            when(which) {
+                                1 -> {
+                                    if(status.id != null){
+                                        db.collection("statuses").document(status.id).delete().addOnSuccessListener {
+                                            fetchStatuses()
+                                        }
+                                    }
+                                }
+                                2 -> {
+                                }
+                            }
+                        }
+
+                    val dialog: AlertDialog = builder.create()
+                    dialog.show()
+                })
+
                 val recyclerView: RecyclerView = binding.profileStatusRecyclerView
                 val llm = LinearLayoutManager(requireContext())
                 llm.orientation = LinearLayoutManager.VERTICAL
