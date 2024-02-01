@@ -86,7 +86,7 @@ class LiveMapFragment : Fragment() {
 
         return root
     }
-
+    //for statuses
     private fun loadStatuses() {
         val db = Firebase.firestore
         db.collection("statuses")
