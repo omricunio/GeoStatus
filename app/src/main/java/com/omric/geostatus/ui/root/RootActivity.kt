@@ -43,5 +43,5 @@ class RootActivity : AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
-    }
+    } 
 }
