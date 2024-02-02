@@ -25,7 +25,9 @@ import com.omric.geostatus.classes.Location
 import com.omric.geostatus.classes.Status
 import com.omric.geostatus.databinding.FragmentProfileBinding
 import com.omric.geostatus.ui.login.LoginActivity
+import com.omric.geostatus.utils.CustomAlerts
 import com.omric.geostatus.utils.ImageUtils
+import com.omric.geostatus.utils.Toaster
 import com.squareup.picasso.Picasso
 import java.util.UUID
 
@@ -73,7 +75,7 @@ class ProfileFragment : Fragment() {
         return root
     }
 
-    fun fetchStatuses() {
+    private fun fetchStatuses() {
         val user = Firebase.auth.currentUser!!
         val db = Firebase.firestore
         db.collection("statuses")
@@ -105,16 +107,35 @@ class ProfileFragment : Fragment() {
                     val builder: AlertDialog.Builder = AlertDialog.Builder(context)
 
                     builder
-                        .setItems(arrayOf("edit", "delete" )) { dialog: DialogInterface, which: Int ->
+                        .setItems(arrayOf("Edit name", "Edit picture", "Delete" )) { dialog: DialogInterface, which: Int ->
                             when(which) {
+                                0 -> {
+                                    CustomAlerts().openTextAlert(requireContext(), "Edit your status", status.name, "Confirm", "Cancel") {
+                                        input ->
+                                            db.collection("statuses").document(status.id!!).update("name", input).addOnSuccessListener {
+                                                Toaster().show(requireContext(), "Successfully updated status name")
+                                                fetchStatuses()
+                                            }
+                                    }
+                                }
                                 1 -> {
-                                    if(status.id != null){
-                                        db.collection("statuses").document(status.id).delete().addOnSuccessListener {
-                                            fetchStatuses()
+                                    imageUtils.captureImage { imageUrl ->
+                                        val storageRef = Firebase.storage.reference
+                                        val imageRef = storageRef.child("images/${UUID.randomUUID()}")
+                                        val uploadTask = imageRef.putFile(imageUrl)
+                                        uploadTask.addOnSuccessListener { taskSnapshot ->
+                                            db.collection("statuses").document(status.id!!).update("imagePath", taskSnapshot.metadata!!.path).addOnSuccessListener {
+                                                Toaster().show(requireContext(), "Successfully updated status picture")
+                                                fetchStatuses()
+                                            }
                                         }
                                     }
                                 }
                                 2 -> {
+                                    db.collection("statuses").document(status.id!!).delete().addOnSuccessListener {
+                                        Toaster().show(requireContext(), "Successfully removed status")
+                                        fetchStatuses()
+                                    }
                                 }
                             }
                         }
@@ -148,14 +169,11 @@ class ProfileFragment : Fragment() {
             val imageRef = storageRef.child("profiles/${UUID.randomUUID()}")
             val uploadTask = imageRef.putFile(imageUrl)
             uploadTask.addOnFailureListener {
-                Toast.makeText(
-                    requireContext(),
-                    "Failed to upload profile picture",
-                    Toast.LENGTH_SHORT,
-                ).show()
+                Toaster().show(requireContext(), "Failed to upload profile picture")
             }.addOnSuccessListener { taskSnapshot ->
                 imageRef.downloadUrl.addOnSuccessListener { uploadedUrl ->
                     user.updateProfile(UserProfileChangeRequest.Builder().setPhotoUri(uploadedUrl).build()).addOnSuccessListener {
+                        Toaster().show(requireContext(), "Successfully updated profile picture")
                         Picasso.get().load(uploadedUrl).into(binding.imageView);
                     }
                 }
