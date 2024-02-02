@@ -7,20 +7,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.Firebase
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
-import com.omric.geostatus.R
 import com.omric.geostatus.classes.Location
 import com.omric.geostatus.classes.Status
 import com.omric.geostatus.databinding.FragmentProfileBinding
@@ -33,8 +30,6 @@ import com.omric.geostatus.utils.Toaster
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -76,7 +71,15 @@ class ProfileFragment : Fragment() {
         imageUtils = ImageUtils(this)
 
         binding.editProfileButton.setOnClickListener {
-            updateProfile()
+            val builder: AlertDialog.Builder = AlertDialog.Builder(context)
+            builder
+                .setItems(arrayOf("Edit profile picture", "Edit profile name")) { dialog: DialogInterface, which: Int ->
+                    when (which) {
+                        0 -> { this.updateProfilePicture() }
+                        1 -> { this.updateName() }
+                    }
+                }
+            builder.show()
         }
 
         binding.logoutButton.setOnClickListener {
@@ -186,7 +189,7 @@ class ProfileFragment : Fragment() {
         recyclerView.adapter = customAdapter
     }
 
-    fun updateProfile() {
+    private fun updateProfilePicture() {
         imageUtils.captureImage() {
                 imageUrl ->
             val user = Firebase.auth.currentUser!!
@@ -202,6 +205,20 @@ class ProfileFragment : Fragment() {
                         Toaster().show(requireContext(), "Successfully updated profile picture")
                         Picasso.get().load(uploadedUrl).into(binding.imageView);
                     }
+                }
+            }
+        }
+    }
+
+    private fun updateName() {
+        CustomAlerts().openTextAlert(requireContext(), "Update profile name", "", "Confirm", "Cancel") {
+            input ->
+            val user = Firebase.auth.currentUser!!
+            user.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(input).build()).addOnSuccessListener {
+                val usersCollection = Firebase.firestore.collection("users")
+                usersCollection.add(hashMapOf("uid" to user.uid, "name" to input)).addOnSuccessListener {
+                    binding.nameTextView.text = input
+                    Toaster().show(requireContext(), "Successfully updated profile name")
                 }
             }
         }
