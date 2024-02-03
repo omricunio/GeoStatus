@@ -85,7 +85,8 @@ class LiveMapFragment : Fragment() {
 
         return root
     }
-
+    
+    //for statuses
     private suspend fun setupMap(statuses: MutableList<Status>) {
         if(statuses.isEmpty()) {
             return
@@ -101,7 +102,7 @@ class LiveMapFragment : Fragment() {
             }
         }
     }
-
+    
     private fun loadStatuses() {
         val db = Firebase.firestore
         db.collection("statuses")
