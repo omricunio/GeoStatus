@@ -7,19 +7,37 @@
 
     <fragment
         android:id="@+id/navigation_live_map"
-        android:name="com.omric.geostatus.ui.home.LiveMapFragment"
+        android:name="com.omric.geostatus.ui.live_map.LiveMapFragment"
         android:label="@string/title_live_map"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_live_map" >
+        <action
+            android:id="@+id/action_navigation_live_map_to_status_view_fragment"
+            app:destination="@id/status_view_fragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_activity"
-        android:name="com.omric.geostatus.ui.dashboard.ActivityFragment"
+        android:name="com.omric.geostatus.ui.activity.ActivityFragment"
         android:label="@string/title_activity"
-        tools:layout="@layout/fragment_dashboard" />
+        tools:layout="@layout/fragment_activity" />
 
     <fragment
         android:id="@+id/navigation_profile"
-        android:name="com.omric.geostatus.ui.notifications.ActivityFragment"
+        android:name="com.omric.geostatus.ui.profile.ProfileFragment"
         android:label="@string/title_profile"
-        tools:layout="@layout/fragment_notifications" />
+        tools:layout="@layout/fragment_profile" >
+        <action
+            android:id="@+id/action_navigation_profile_to_status_view_fragment"
+            app:destination="@id/status_view_fragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/status_view_fragment"
+        android:name="com.omric.geostatus.ui.status_view.StatusViewFragment"
+        android:label="Status"
+        tools:layout="@layout/status_view" >
+        <argument
+            android:name="status"
+            app:argType="com.omric.geostatus.classes.Status" />
+    </fragment>
 </navigation>
