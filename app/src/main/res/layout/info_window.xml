@@ -40,7 +40,7 @@
                 android:fontFamily="@font/heebo_light"
                 android:padding="3dp"
                 android:singleLine="true"
-                android:text="title"
+                android:text="Loading"
                 android:textColor="#ff000000"
                 android:textSize="13dp" />
 
@@ -51,7 +51,7 @@
                 android:layout_gravity="center_vertical"
                 android:fontFamily="@font/heebo_light"
                 android:padding="3dp"
-                android:text="45 bays  available"
+                android:text="Loading Creator"
                 android:textColor="@color/white"
                 android:textSize="14dp" />
         </LinearLayout>

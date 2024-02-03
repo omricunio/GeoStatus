@@ -24,9 +24,12 @@ import com.omric.geostatus.R
 import com.omric.geostatus.classes.Location
 import com.omric.geostatus.classes.Status
 import com.omric.geostatus.databinding.FragmentLiveMapBinding
+import com.omric.geostatus.room.StatusDBs
+import com.omric.geostatus.room.StatusRoom
 import com.omric.geostatus.ui.maps.InfoWindowAdapter
 import com.omric.geostatus.ui.maps.StatusMapBubble
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -34,6 +37,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 import java.net.URL
 
 
@@ -63,16 +67,8 @@ class LiveMapFragment : Fragment() {
             runBlocking {
                 val statuses = liveMapViewModel.statuses.value
                 if(!statuses.isNullOrEmpty()) {
-                    launch {
-                        val markerToStatus = mapStatuses(map, statuses)
-                        map.setInfoWindowAdapter(InfoWindowAdapter(requireActivity(), markerToStatus))
-                        map.setOnInfoWindowClickListener { marker ->
-                            val bubble = markerToStatus[marker]
-                            if(bubble != null) {
-                                val action = LiveMapFragmentDirections.actionNavigationLiveMapToStatusViewFragment(bubble.originalStatus)
-                                findNavController().navigate(action)
-                            }
-                        }
+                    CoroutineScope(Dispatchers.Main).launch {
+                        setupMap(statuses)
                     }
                 }
             }
@@ -81,12 +77,32 @@ class LiveMapFragment : Fragment() {
         val supportMapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment;
         supportMapFragment.getMapAsync(OnMapReadyCallback { googleMap ->
             map = googleMap
-            loadStatuses()
+            CoroutineScope(Dispatchers.Main).launch {
+                loadStatuses()
+            }
+
         })
 
         return root
     }
+    
     //for statuses
+    private suspend fun setupMap(statuses: MutableList<Status>) {
+        if(statuses.isEmpty()) {
+            return
+        }
+        map.clear()
+        val markerToStatus = mapStatuses(map, statuses)
+        map.setInfoWindowAdapter(InfoWindowAdapter(requireActivity(), markerToStatus))
+        map.setOnInfoWindowClickListener { marker ->
+            val bubble = markerToStatus[marker]
+            if(bubble != null) {
+                val action = LiveMapFragmentDirections.actionNavigationLiveMapToStatusViewFragment(bubble.originalStatus)
+                findNavController().navigate(action)
+            }
+        }
+    }
+    
     private fun loadStatuses() {
         val db = Firebase.firestore
         db.collection("statuses")
@@ -125,21 +141,32 @@ class LiveMapFragment : Fragment() {
             val markerOptions = MarkerOptions()
             markerOptions.position(LatLng(status.location.latitude, status.location.longitude))
             markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-            val storage = Firebase.storage.reference
-            val imageRef = storage.child(status.imagePath)
-            val imageUrl = imageRef.downloadUrl.await()
 
-            val bitmap = GlobalScope.async {
-                val bitmap = Picasso.get().load(imageUrl).get()
-                bitmap
-            }.await()
 
-            val snapshot = Firebase.firestore.collection("users").whereEqualTo("uid", status.creator).get().await()
-            val creatorName = snapshot.documents.first()["name"] as String
+            var bitmap = status.imageBitmap
+            if(status.imageBitmap == null) {
+                val storage = Firebase.storage.reference
+                val imageRef = storage.child(status.imagePath)
+                val imageUrl = imageRef.downloadUrl.await()
+                bitmap = CoroutineScope(Dispatchers.IO).async {
+                    val output = withTimeoutOrNull(5000) {
+                        Picasso.get().load(imageUrl).get()
+                    }
+                    output
+                }.await()
+            }
+
+            var creatorName = status.creatorName
+            if(creatorName == null) {
+                val snapshot = Firebase.firestore.collection("users").whereEqualTo("uid", status.creator).get().await()
+                creatorName = snapshot.documents.first()["name"] as String
+            }
+
             val bubble = StatusMapBubble(status.name, creatorName, bitmap, status)
             val marker = googleMap.addMarker(markerOptions)!!
             hasMap[marker] = bubble
         }
+
         return hasMap
     }
 
