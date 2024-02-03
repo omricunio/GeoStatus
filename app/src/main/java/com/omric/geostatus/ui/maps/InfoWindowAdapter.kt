@@ -23,7 +23,7 @@ import com.omric.geostatus.ui.live_map.LiveMapFragmentDirections
 import com.omric.geostatus.ui.profile.ProfileFragmentDirections
 import com.squareup.picasso.Picasso
 
-class StatusMapBubble(val name: String, val creatorName: String, val image: Bitmap, val originalStatus: Status) {}
+class StatusMapBubble(val name: String, val creatorName: String, val image: Bitmap?, val originalStatus: Status) {}
 
 class InfoWindowAdapter(private val myContext: FragmentActivity, private val markerToStatus: HashMap<Marker, StatusMapBubble>) : GoogleMap.InfoWindowAdapter {
     private val view: View
