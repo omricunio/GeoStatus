@@ -41,7 +41,6 @@ class LoginActivity : AppCompatActivity() {
 
     private var isRegisterMode = false
     private lateinit var auth: FirebaseAuth
-    private lateinit var viewModel: LoginViewModel
     override fun onCreate(savedInstanceState: Bundle?, ) {
         super.onCreate(savedInstanceState)
         _binding = LoginLayoutBinding.inflate(layoutInflater)
@@ -53,8 +52,6 @@ class LoginActivity : AppCompatActivity() {
         if(auth.uid != null) {
             passLogin()
         }
-
-        viewModel = ViewModelProvider(this).get<LoginViewModel>(LoginViewModel::class.java)
 
         binding.signUpText.setOnClickListener {
             toggleLoginRegisterMode()
