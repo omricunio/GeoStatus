@@ -58,7 +58,9 @@ class ProfileFragment : Fragment() {
             if(statuses.isEmpty()) {
                 return@launch
             }
-            setupAdapter(statuses.toTypedArray())
+            CoroutineScope(Dispatchers.Main).launch {
+                setupAdapter(statuses.toTypedArray())
+            }
         }
 
         val user = Firebase.auth.currentUser
