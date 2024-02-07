@@ -7,6 +7,8 @@ import androidx.room.Insert
 import androidx.room.Query
 import com.omric.geostatus.room.Status
 
+//select from the db
+
 @Dao
 interface StatusDao {
     @Query("SELECT * FROM status")
